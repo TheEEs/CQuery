@@ -63,7 +63,8 @@ namespace UltimateHandsome{
         }
 
         inline bool is_empty() { return this->length == 0; }
-
+        
+        
         void remove(unsigned int index) {
             if (this->length == 0 or this->length <= index)
                 throw OutOfRange("Index is out of range", index);
@@ -71,9 +72,6 @@ namespace UltimateHandsome{
             int pivot_number = (index - (offset = index % 10)) / 10;
             node *_nodex = this->pivot[pivot_number];
             short i;
-            if (index == 15) {
-                cout << "Break";
-            }
             for (i = 0; i < offset; i++) {
                 _nodex = _nodex->next;
             }
