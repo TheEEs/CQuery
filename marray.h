@@ -24,14 +24,15 @@ namespace UltimateHandsome{
     public:
         const char *message() { return this->_message; }
 
-        EmptyException(const char *message) { this->_message = message; }
+        EmptyException(const char *message):exception() { this->_message = message; }
     };
 
     template<class T>
     class Array {
     public:
-        Array() {}
-
+    	
+    	/*Constructors are here*/
+    	
         void add(T item) {
             if (length == 0) {
                 pivot = (node **) malloc(sizeof(Array::_node));
@@ -142,9 +143,6 @@ namespace UltimateHandsome{
             } while (_nodex = _nodex->next);
             return rel;
         }
-
-        template<typename x>
-
         void insert_before(unsigned int index, T value) {
             node *inserted_node = new node{value};
             if (this->length == 0 or this->length <= index)
@@ -224,9 +222,10 @@ namespace UltimateHandsome{
             if (first_index < 0 or first_index >= this->length) throw OutOfRange("Index is out of range", first_index);
             if (second_index < 0 or second_index >= this->length)
                 throw OutOfRange("Index is out of range", second_index);
-            this->operator[](first_index) += this->operator[](second_index);
-            this->operator[](second_index) = this->operator[](first_index) - this->operator[](second_index);
-            this->operator[](first_index) -= this->operator[](second_index);
+            T buffer;
+            buffer = this->operator[](first_index); 
+            this->operator[](first_index) = this->operator[](second_index);
+            this->operator[](second_index) = buffer;
         }
 
         void each(void (*func)(T &)) {
@@ -279,10 +278,36 @@ namespace UltimateHandsome{
         }
 
         void sort()/*A implementation of the quick sort algorithm*/{
-            for(unsigned int x = 0;x<this->length;x++)
-                for(unsigned int y = x;y<this->length;y++)
-                    if(this->operator[](y)<this->operator[](x))
-                        this->swap(x,y);
+           if(this->length <= 1) return;
+           node * begin_node = this->pivot[0], * end_node = this->last_node;
+           node * current_node;
+           T buffer;
+           while(true){
+           	pharse1:
+           		current_node = end_node;
+           		while(current_node != begin_node){
+           			current_node = current_node->previous;
+           			if(current_node && current_node->value > end_node->value){
+           				buffer = current_node->value;
+						current_node->value = end_node->value;
+						end_node->value = buffer;	
+						goto pharse2;
+					   }
+				   }
+				   if((end_node = end_node->previous) == begin_node) return;
+           	pharse2:
+           		current_node = begin_node;
+           		while(current_node != end_node){
+           			current_node = current_node->next;
+           			if(current_node && current_node->value < begin_node->value){
+           				buffer = current_node->value;
+           				current_node->value = begin_node->value;
+           				begin_node->value = buffer;
+           				goto pharse1;
+					   }
+				   }
+				   if((begin_node = begin_node->next) == end_node) return;
+		   }
         }
     private:
         typedef struct _node {
