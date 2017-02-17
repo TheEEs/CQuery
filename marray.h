@@ -33,6 +33,14 @@ namespace UltimateHandsome{
     	
     	/*Constructors are here*/
     	
+    	template<class ...type>
+    	void add(T item,type... params){
+    		if(sizeof...(params)){
+    			this->add(item);
+    			this->add(params...);
+			}
+		}
+    	
         void add(T item) {
             if (length == 0) {
                 pivot = (node **) malloc(sizeof(Array::_node));
