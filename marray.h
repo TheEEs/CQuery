@@ -1,8 +1,17 @@
-#include <iostream>
+#include <stdlib.h>
+#include <initializer_list>
 #include <stdio.h>
 #include <exception>
 using namespace std;
 namespace UltimateHandsome{
+    enum class SORT_OPTION{
+        SMALLEST2BIGGEST = 0,
+        BIGGEST2SMALLEST = 1
+    };
+    enum class SEARCH_TYPE{
+        LINEAR = 0,
+        BINARY = 1
+    };
     class OutOfRange : public exception {
     private:
         const char *_message;
@@ -43,7 +52,7 @@ namespace UltimateHandsome{
     	
         void add(T item) {
             if (length == 0) {
-                pivot = (node **) malloc(sizeof(Array::_node));
+                pivot = (node **)malloc(sizeof(Array::_node));
                 last_node = new node{.value=item};
                 length++;
                 pivot[0] = last_node;
@@ -62,9 +71,15 @@ namespace UltimateHandsome{
             }
         }
 
+
+
+        Array<T> &operator <<(T item){
+            this->add(item);
+            return *this;
+        }
         inline bool is_empty() { return this->length == 0; }
         
-        
+
         void remove(unsigned int index) {
             if (this->length == 0 or this->length <= index)
                 throw OutOfRange("Index is out of range", index);
@@ -90,7 +105,8 @@ namespace UltimateHandsome{
             }
             if (index % 10 != 0 && pivot_number < this->pivot_length - 1)
                 pivot_number++;
-            if (index < (this->pivot_length - 1) * 10 || this->length <= 10)
+            if (index < (this->pivot_length - 1) * 10 && this->length >= 10)
+            //if(index < (pivot_number-1) * 10)
                 do {
                     this->pivot[pivot_number] = this->pivot[pivot_number]->next;
                 } while (++pivot_number != this->pivot_length);
@@ -126,7 +142,7 @@ namespace UltimateHandsome{
             }
             if (index % 10 != 0 && pivot_number < this->pivot_length - 1)
                 pivot_number++;
-            if (index < (this->pivot_length - 1) * 10 || this->length <= 10)
+            if (index < (this->pivot_length - 1) * 10 && this->length >= 10)
                 do {
                     this->pivot[pivot_number] = this->pivot[pivot_number]->previous;
                 } while (++pivot_number < this->pivot_length);
@@ -172,7 +188,7 @@ namespace UltimateHandsome{
             }
             if (index % 10 != 0 && pivot_number < this->pivot_length - 1)
                 pivot_number++;
-            if (index < (this->pivot_length - 1) * 10 || this->length <= 10)
+            if (index < (this->pivot_length - 1) * 10 && this->length >= 10)
                 do {
                     this->pivot[pivot_number] = this->pivot[pivot_number]->previous;
                 } while (++pivot_number < this->pivot_length);
@@ -182,8 +198,8 @@ namespace UltimateHandsome{
             }
         }
 
-        void clear() {
-            if (length == 0)return;
+        UltimateHandsome::Array<T> & clear() {
+            if (length == 0)return *this;
             node *inode = this->pivot[0];
             while (inode) {
                 node *iinode = inode->next;
@@ -193,8 +209,19 @@ namespace UltimateHandsome{
             free(this->pivot);
             this->length = 0;
             this->pivot_length = 0;
-
+            return * this;
         }
+
+
+        UltimateHandsome::Array<T> &operator << (UltimateHandsome::Array<T> a){
+            if(!a.count()) return *this;
+            node * begin = a.pivot[0];
+            do {
+                this->add(begin->value);
+            }while(begin = begin->next);
+            return *this;
+        }
+
 
         T &operator[](unsigned int index) {
             if (this->length == 0)
@@ -283,36 +310,36 @@ namespace UltimateHandsome{
             return value;
         }
 
-        void sort()/*A implementation of the quick sort algorithm*/{
-           if(this->length <= 1) return;
-           node * begin_node = this->pivot[0], * end_node = this->last_node;
-           node * current_node;
-           T buffer;
-           while(true){
-           	pharse1:
+        UltimateHandsome::Array<T> & sort(UltimateHandsome::SORT_OPTION option = SORT_OPTION::SMALLEST2BIGGEST)/*An implementation of the quick sort algorithm*/{
+            if(this->length <= 1) return *this;
+            node * begin_node = this->pivot[0], * end_node = this->last_node;
+            node * current_node;
+            T buffer;
+            while(true){
+            	pharse1:
            		current_node = end_node;
            		while(current_node != begin_node){
            			current_node = current_node->previous;
-           			if(current_node && current_node->value > end_node->value){
+           			if(option == SORT_OPTION::SMALLEST2BIGGEST ? current_node && current_node->value > end_node->value : current_node && current_node->value < end_node->value){
            				buffer = current_node->value;
 						current_node->value = end_node->value;
 						end_node->value = buffer;	
 						goto pharse2;
 					   }
 				   }
-				   if((end_node = end_node->previous) == begin_node) return;
-           	pharse2:
+				   if((end_node = end_node->previous) == begin_node) {this->sort_type = option; return *this;}
+           	    pharse2:
            		current_node = begin_node;
            		while(current_node != end_node){
            			current_node = current_node->next;
-           			if(current_node && current_node->value < begin_node->value){
+           			if(option == SORT_OPTION::SMALLEST2BIGGEST ? current_node && current_node->value < begin_node->value : current_node && current_node->value > begin_node->value){
            				buffer = current_node->value;
            				current_node->value = begin_node->value;
            				begin_node->value = buffer;
            				goto pharse1;
 					   }
 				   }
-				   if((begin_node = begin_node->next) == end_node) return;
+				   if((begin_node = begin_node->next) == end_node) {this->sort_type = option; return *this;}
 		   }
         }
     private:
@@ -324,5 +351,43 @@ namespace UltimateHandsome{
         node *last_node;
         unsigned int length = 0, pivot_length = 0;
         node **pivot;
+        SORT_OPTION sort_type;
+    public:
+        //LINQ-like functions bellow here
+        bool look_for(T value,enum SEARCH_TYPE type = SEARCH_TYPE::LINEAR){
+            if (!this->count()) throw EmptyException("Array is empty.");
+            node * begin_node ;//= this->pivot[0];
+            if(type == SEARCH_TYPE::LINEAR){
+                begin_node = this->pivot[0];
+                do
+                    if (begin_node->value == value) return true;
+                while(begin_node = begin_node->next);
+                return false;
+            }
+            else/*Binary search*/{
+                /*Note that if the array have not been sorted yet this function will not work well!*/
+                unsigned int pivot , begin = 0, end = this->length -1 ;
+                while(end - begin != 0) {
+                    pivot = begin + (end - begin)/2;
+                    T value_x = this->operator[](pivot);
+                    if( (bool)this->sort_type ? value < value_x : value > value_x) begin   = pivot +1;
+                    else if ( (bool)this->sort_type ? value > value_x : value < value_x) end = pivot -1;
+                    else return true;
+                }
+                return this->operator[](begin)== value;
+            }
+        }
+        UltimateHandsome::Array<T> & filter(bool (*func)(T element)) {
+            unsigned int index = 0;
+            if(!this->length) return *this;
+            node * _node = this->pivot[0];
+            node * _next_node;
+            do{
+                _next_node = _node->next;
+                if(!func(_node->value)){this->remove(index);}
+                else{index++;}
+            } while(_node = _next_node);
+            return * this;
+        }
     };
 }
