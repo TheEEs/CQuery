@@ -1,8 +1,6 @@
-#include <stdlib.h>
-#include <initializer_list>
 #include <stdio.h>
+#include <stdlib.h>
 #include <exception>
-using namespace std;
 namespace UltimateHandsome{
     enum class SORT_OPTION{
         SMALLEST2BIGGEST = 0,
@@ -12,7 +10,7 @@ namespace UltimateHandsome{
         LINEAR = 0,
         BINARY = 1
     };
-    class OutOfRange : public exception {
+    class OutOfRange : public std::exception {
     private:
         const char *_message;
         unsigned int _index;
@@ -27,7 +25,7 @@ namespace UltimateHandsome{
         }
     };
 
-    class EmptyException : public exception {
+    class EmptyException : public std::exception {
     private:
         const char *_message;
     public:
@@ -93,6 +91,8 @@ namespace UltimateHandsome{
             node *pre_node, *next_node;
             pre_node = _nodex->previous;
             next_node = _nodex->next;
+            if (index == this->count()-1)
+                this->last_node = pre_node;
             if (pre_node) pre_node->next=next_node;
             if(next_node) next_node->previous=pre_node;
             if((index %10 !=0) and pivot_number < this->pivot_length-1)/*If index is in range 10..(this->pivot_length-1)*10*/
@@ -170,15 +170,17 @@ namespace UltimateHandsome{
         }
 
         template<typename x>
-        Array<x> map(x *(&func)(T ele_ptr)) {
+        Array<x> map(bool func(T ele_ptr , x & return_variable)) {
+
+            x rel_var;
             Array<x> rel;
             if (this->length == 0) return rel;
             node *_nodex = this->pivot[0];
-            x *callback_return;
+            bool callback_return;
             do {
-                callback_return = func(_nodex->value);
+                callback_return = func(_nodex->value,rel_var);
                 if (callback_return)
-                    rel.add(*callback_return);
+                    rel.add(rel_var);
             } while (_nodex = _nodex->next);
             return rel;
         }
