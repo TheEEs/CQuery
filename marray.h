@@ -80,7 +80,7 @@ namespace UltimateHandsome{
         inline bool is_empty() { return this->length == 0; }
         
 
-        void remove(unsigned int index) {
+        UltimateHandsome::Array<T> & remove(unsigned int index) {
             if (this->length == 0 or this->length <= index)
                 throw OutOfRange("Index is out of range", index);
             int offset;
@@ -93,33 +93,23 @@ namespace UltimateHandsome{
             node *pre_node, *next_node;
             pre_node = _nodex->previous;
             next_node = _nodex->next;
-            if (pre_node &&
-                next_node)/*the element which have just been removed is neither the first nor the last element*/{
-                pre_node->next = next_node;
-                next_node->previous = pre_node;
-            } else if (pre_node)/*The last element have just been removed*/{
-                this->last_node = pre_node;
-                this->last_node->next = nullptr;
-            } else if (next_node)/*The first element have just been removed*/{
-                next_node->previous = nullptr;
-            }
-            if (index % 10 != 0 && pivot_number < this->pivot_length - 1)
+            if (pre_node) pre_node->next=next_node;
+            if(next_node) next_node->previous=pre_node;
+            if((index %10 !=0) and pivot_number < this->pivot_length-1)/*If index is in range 10..(this->pivot_length-1)*10*/
                 pivot_number++;
-            if (index < (this->pivot_length - 1) * 10 && this->length >= 10)
-            //if(index < (pivot_number-1) * 10)
-                do {
-                    this->pivot[pivot_number] = this->pivot[pivot_number]->next;
-                } while (++pivot_number != this->pivot_length);
-            delete _nodex;
+            if(index <= (this->pivot_length-1) * 10)
+            for(i = pivot_number;i<this->pivot_length;i++)
+                this->pivot[i] = this->pivot[i]->next;
             this->length--;
+            delete _nodex;
             if (!this->pivot[pivot_length - 1]) /*If the last tens are completely removed*/
                 this->pivot = (node **) realloc(this->pivot, sizeof(Array::node) * --this->pivot_length);
 
+            return * this;
         }
 
 
-        void insert_after(unsigned int index, T value) {
-            node *inserted_node = new node{value};
+        UltimateHandsome::Array<T> & insert_after(unsigned int index, T value) {
             if (this->length == 0 or this->length <= index)
                 throw OutOfRange("Index is out of range", index);
             int offset;
@@ -128,28 +118,55 @@ namespace UltimateHandsome{
             for (auto i = 0; i < offset; i++) {
                 before_node = before_node->next;
             }
-            node *after_node;
-            if (index == this->length - 1)/*New item is inserted after the last item*/{
-                before_node->next = inserted_node;
-                inserted_node->previous = before_node;
-                this->last_node = inserted_node;
-            } else {
-                after_node = before_node->next;
-                before_node->next = inserted_node;
-                after_node->previous = inserted_node;
-                inserted_node->previous = before_node;
-                inserted_node->next = after_node;
+            node * new_node = new node();new_node->value = value;
+            if(index == this->length-1) this->last_node = new_node;
+            node * after_node = before_node->next;
+            before_node->next = new_node;
+            new_node->previous=before_node;
+            if(after_node){
+                after_node->previous=new_node;
+                new_node->next=after_node;
             }
-            if (index % 10 != 0 && pivot_number < this->pivot_length - 1)
+            if(index < (this->pivot_length - 1)* 10)
                 pivot_number++;
-            if (index < (this->pivot_length - 1) * 10 && this->length >= 10)
-                do {
-                    this->pivot[pivot_number] = this->pivot[pivot_number]->previous;
-                } while (++pivot_number < this->pivot_length);
+            if(index < (this->pivot_length-1) * 10)
+                for(auto i = pivot_number;i<this->pivot_length;i++)
+                    this->pivot[i] = this->pivot[i]->previous;
+            if (this->length++ % 10 == 0) {
+                this->pivot = (node **) realloc(this->pivot, sizeof(Array::node) * ++this->pivot_length);
+                this->pivot[pivot_length - 1] = this->last_node;
+            }
+            return *this;
+        }
+
+
+        UltimateHandsome::Array<T> & insert_before(unsigned int index, T value) {
+            if (this->length == 0 or this->length <= index)
+                throw OutOfRange("Index is out of range", index);
+            int offset;
+            int pivot_number = (index - (offset = index % 10)) / 10;
+            node *after_node = this->pivot[pivot_number];
+            for (auto i = 0; i < offset; i++) {
+                after_node = after_node->next;
+            }
+            node * new_node = new node{value};
+            node * before_node = after_node->previous;
+            new_node->next = after_node;
+            after_node->previous = new_node;
+            if(before_node){
+                before_node->next=new_node;
+                new_node->previous=before_node;
+            }
+            if(index %10 != 0 and index <= (this->pivot_length - 1)* 10)
+                pivot_number++;
+            if(index <= (this->pivot_length-1) * 10)
+                for(auto i = pivot_number;i<this->pivot_length;i++)
+                    this->pivot[i] = this->pivot[i]->previous;
             if (this->length++ % 10 == 0) {
                 this->pivot = (node **) realloc(this->pivot, sizeof(Array::node) * ++pivot_length);
                 this->pivot[pivot_length - 1] = this->last_node;
             }
+            return * this;
         }
 
         template<typename x>
@@ -165,38 +182,7 @@ namespace UltimateHandsome{
             } while (_nodex = _nodex->next);
             return rel;
         }
-        void insert_before(unsigned int index, T value) {
-            node *inserted_node = new node{value};
-            if (this->length == 0 or this->length <= index)
-                throw OutOfRange("Index is out of range", index);
-            int offset;
-            int pivot_number = (index - (offset = index % 10)) / 10;
-            node *after_node = this->pivot[pivot_number];
-            for (auto i = 0; i < offset; i++) {
-                after_node = after_node->next;
-            }
-            node *before_node;
-            if (index == 0)/*New item is inserted before the first item*/{
-                after_node->previous = inserted_node;
-                inserted_node->next = after_node;
-            } else {
-                before_node = after_node->previous;
-                before_node->next = inserted_node;
-                after_node->previous = inserted_node;
-                inserted_node->previous = before_node;
-                inserted_node->next = after_node;
-            }
-            if (index % 10 != 0 && pivot_number < this->pivot_length - 1)
-                pivot_number++;
-            if (index < (this->pivot_length - 1) * 10 && this->length >= 10)
-                do {
-                    this->pivot[pivot_number] = this->pivot[pivot_number]->previous;
-                } while (++pivot_number < this->pivot_length);
-            if (this->length++ % 10 == 0) {
-                this->pivot = (node **) realloc(this->pivot, sizeof(Array::node) * ++pivot_length);
-                this->pivot[pivot_length - 1] = this->last_node;
-            }
-        }
+
 
         UltimateHandsome::Array<T> & clear() {
             if (length == 0)return *this;
@@ -261,21 +247,23 @@ namespace UltimateHandsome{
             this->operator[](second_index) = buffer;
         }
 
-        void each(void (*func)(T &)) {
-            if (this->length == 0) return;
+        UltimateHandsome::Array<T> & each(void (*func)(T &)) {
+            if (this->length == 0) return * this;
             node *_nodex = this->pivot[0];
             do {
                 func(_nodex->value);
             } while (_nodex = _nodex->next);
+            return  * this;
         }
 
-        void each(void (*func)(T &, unsigned int)) {
+        UltimateHandsome::Array<T> & each(void (*func)(T &, unsigned int)) {
             unsigned int index = 0;
-            if (this->length == 0) return;
+            if (this->length == 0) return * this;
             node *_nodex = this->pivot[0];
             do {
                 func(_nodex->value, index++);
             } while (_nodex = _nodex->next);
+            return * this;
         }
 
         UltimateHandsome::Array<T> clone(){
@@ -349,20 +337,22 @@ namespace UltimateHandsome{
             _node *previous;
         } node;
         node *last_node;
-        unsigned int length = 0, pivot_length = 0;
         node **pivot;
+        unsigned int length = 0, pivot_length = 0;
+
         SORT_OPTION sort_type;
     public:
         //LINQ-like functions bellow here
-        bool look_for(T value,enum SEARCH_TYPE type = SEARCH_TYPE::LINEAR){
+        UltimateHandsome::Array<T> & look_for(T value,bool * return_value,enum SEARCH_TYPE type = SEARCH_TYPE::LINEAR){
             if (!this->count()) throw EmptyException("Array is empty.");
             node * begin_node ;//= this->pivot[0];
             if(type == SEARCH_TYPE::LINEAR){
                 begin_node = this->pivot[0];
                 do
-                    if (begin_node->value == value) return true;
+                    if (begin_node->value == value) {*return_value=true; return *this;}
                 while(begin_node = begin_node->next);
-                return false;
+                *return_value = false;
+                return * this;
             }
             else/*Binary search*/{
                 /*Note that if the array have not been sorted yet this function will not work well!*/
