@@ -34,7 +34,7 @@ namespace UltimateHandsome{
         EmptyException(const char *message):exception() { this->_message = message; }
     };
 
-    template<class T>
+    template<typename T>
     class Array {
     public:
     	
@@ -170,7 +170,7 @@ namespace UltimateHandsome{
         }
 
         template<typename x>
-        Array<x> map(bool func(T ele_ptr , x & return_variable)) {
+        Array<x> map(bool (*func)(T ele_ptr , x * return_variable)) {
 
             x rel_var;
             Array<x> rel;
@@ -178,7 +178,7 @@ namespace UltimateHandsome{
             node *_nodex = this->pivot[0];
             bool callback_return;
             do {
-                callback_return = func(_nodex->value,rel_var);
+                callback_return = func(_nodex->value,&rel_var);
                 if (callback_return)
                     rel.add(rel_var);
             } while (_nodex = _nodex->next);
