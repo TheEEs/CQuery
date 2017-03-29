@@ -3,13 +3,11 @@
 using namespace std;
 using namespace UltimateHandsome;
 int main(){
-    Array<int> a;
-    a.add(1,2,3,4,5,6,7,8,9,0);
-    Array<int> b = a.map<int>([](int ele,int * new_item)-> bool{
-        return (*new_item = ele * 2) > 10;
+    Array<int>x ;
+    x.add(1,2);
+    x.sort(SORT_OPTION::BIGGEST2SMALLEST);
+    x.each([](int & e){
+        cout<<e<<'\n';
     });
-    a.clear();
-    b.each([](int & element){
-        cout<<element<<"\n";
-    });
+    cout<<"look for: "<<4<< " : "<< x.look_for(2,SEARCH_TYPE::BINARY);
 }
