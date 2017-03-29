@@ -345,26 +345,28 @@ namespace UltimateHandsome{
         SORT_OPTION sort_type;
     public:
         //LINQ-like functions bellow here
-        UltimateHandsome::Array<T> & look_for(T value,bool * return_value,enum SEARCH_TYPE type = SEARCH_TYPE::LINEAR){
-            if (!this->count()) throw EmptyException("Array is empty.");
+       bool look_for(T value,enum SEARCH_TYPE type = SEARCH_TYPE::LINEAR){
+            if (!this->count())
+                return false;
             node * begin_node ;//= this->pivot[0];
             if(type == SEARCH_TYPE::LINEAR){
                 begin_node = this->pivot[0];
                 do
-                    if (begin_node->value == value) {*return_value=true; return *this;}
+                    if (begin_node->value == value) return true;
                 while(begin_node = begin_node->next);
-                *return_value = false;
-                return * this;
+                return false;
             }
             else/*Binary search*/{
                 /*Note that if the array have not been sorted yet this function will not work well!*/
                 unsigned int pivot , begin = 0, end = this->length -1 ;
                 while(end - begin != 0) {
+                    if((signed)end < 0)
+                        return false;
                     pivot = begin + (end - begin)/2;
                     T value_x = this->operator[](pivot);
                     if( (bool)this->sort_type ? value < value_x : value > value_x) begin   = pivot +1;
                     else if ( (bool)this->sort_type ? value > value_x : value < value_x) end = pivot -1;
-                    else return true;
+                    else return  true;
                 }
                 return this->operator[](begin)== value;
             }
