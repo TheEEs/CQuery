@@ -1,4 +1,4 @@
-#CQuery -
+# CQuery
 > a C++ utility that helps you improve performance in writing code.  
 
 * Don't need to write algorithm functions from scratch.
