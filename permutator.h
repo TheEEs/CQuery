@@ -42,7 +42,7 @@ private:
         switch (len){
             case 0:
             case 1:
-                return 0;
+                return 1;
             case 2:
                 if(_start_array[0] > _start_array[1])
                     return 1;
